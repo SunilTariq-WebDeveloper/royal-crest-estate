@@ -39,7 +39,6 @@ const FAQPage = () => {
     { id: "legal", label: "Legal", icon: <SafetyOutlined />, count: 5 },
   ];
 
-  // FAQ Data organized by category
   const faqData = {
     general: [
       {

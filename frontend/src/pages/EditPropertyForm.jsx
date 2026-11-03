@@ -120,40 +120,48 @@ const handleCancel = () => {
         : [...(prev.amenities || []), amenityName],
     }));
   };
+const handleImageUpload = async (e) => {
+  const files = e.target.files;
+  if (!files.length) return;
 
-  const handleImageUpload = async (e) => {
-    const files = e.target.files;
-    if (!files.length) return;
+  const formDataUpload = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    formDataUpload.append("images", files[i]);
+  }
 
-    const formDataUpload = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formDataUpload.append("images", files[i]);
-    }
-
-    setUploadingImages(true);
-    try {
-      const res = await axios.post(
-        "http://localhost:7500/api/v1/upload",
-        formDataUpload,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+  setUploadingImages(true);
+  try {
+    const res = await axios.post(
+      "http://localhost:7500/api/v1/upload", // 🟢 Port 7500 se badal kar 7600 kar diya
+      formDataUpload,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
-      setProperty((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), ...res.data.images],
-      }));
-      successToast(`${res.data.images.length} images uploaded successfully!`);
-    } catch (err) {
-      console.error(err);
-      errorToast(err.response?.data?.message || "Image upload failed");
-    } finally {
-      setUploadingImages(false);
-    }
-  };
+      },
+    );
 
+    // Backend se aane wale paths ko clean aur format karna (backslashes aur base URL fix karne ke liye)
+    const formattedImages = res.data.images.map((imgPath) => {
+      const cleanPath = imgPath.replace(/\\/g, "/");
+      return cleanPath.startsWith("http")
+        ? cleanPath
+        : `http://localhost:7500/${cleanPath}`;
+    });
+
+    setProperty((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), ...formattedImages],
+    }));
+
+    successToast(`${res.data.images.length} images uploaded successfully!`);
+  } catch (err) {
+    console.error(err);
+    errorToast(err.response?.data?.message || "Image upload failed");
+  } finally {
+    setUploadingImages(false);
+  }
+};
   const handleAddImages = () => {
     if (imageInput.trim()) {
       const urls = imageInput.split(",").map((url) => url.trim());

@@ -1,9 +1,26 @@
-import mongoose from 'mongoose'
 
-const dbConnect = () => {
-    mongoose.connect( process.env.MONGODB_CLOUD_URI)
-    .then
-    (conn => console.log(`mongodb is now connected with express by using ${conn.connection.host}`))
-    .catch(err => console.log(`mongodb connection failed b/c ${err.message}`)) 
-}
-export default dbConnect
+import mongoose from 'mongoose';
+
+const dbConnect = async () => {
+    try {
+        const conn = await mongoose.connect(
+            process.env.MONGODB_CLOUD_URI
+        );
+
+        console.log(`☁️ MongoDB Connected: ${conn.connection.host}`);
+    } catch (err) {
+        console.log(`❌ Cloud DB failed: ${err.message}`);
+
+        try {
+            const conn = await mongoose.connect(
+                process.env.MONGO_URI_LOCAL
+            );
+
+            console.log(`💻 Local MongoDB Connected: ${conn.connection.host}`);
+        } catch (localErr) {
+            console.log(`❌ Local DB also failed: ${localErr.message}`);
+        }
+    }
+};
+
+export default dbConnect;

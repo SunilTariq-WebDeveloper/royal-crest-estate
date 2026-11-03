@@ -1,7 +1,7 @@
 import { catchFunc, warning, error, success, success_WITH_id } from "../helpers/errors.js";
 import User from "../models/user.model.js";
 
-import { AWSSES, CLIENT_URL } from "../config/awsses.js";
+import { CLIENT_URL } from "../config/awsses.js";
 import evalidator from "email-validator";
 import pvalidator from "password-validator";
 import { nanoid } from "nanoid";
@@ -64,33 +64,22 @@ const preSignup = async (req, res) => {
 
         console.log(`${CLIENT_URL}/activate/${token}`);
 
-        AWSSES.sendEmail(
-            EmailTemplate(
-                email,
-
-                "Signup Verification Link",
-
-                `
-               <h2>Signup Verification Link</h2>
-               <p>
-                   <a href='${CLIENT_URL}/auth/activate/${token}'> Craete Account </a> 
-               </p>
-            `,
-            ),
-            (err, data) => {
-                if (err) {
-                    return res.json({
-                        error: err.message,
-                    });
-                }
-                if (data) {
-                    return res.json({
-                        message:
-                            "We have sent you verification link, Please check your email address to complete signup process.",
-                    });
-                }
-            },
+        // Nodemailer ke zariye email send karein
+        await EmailTemplate(
+            email,
+            "Signup Verification Link",
+            `
+            <h2>Signup Verification Link</h2>
+            <p>
+                <a href='${CLIENT_URL}/auth/activate/${token}'> Create Account </a> 
+            </p>
+            `
         );
+
+        return res.json({
+            message: "We have sent you verification link, Please check your email address to complete signup process.",
+        });
+
     } catch (err) {
         catchFunc(err, res);
     }
@@ -188,35 +177,25 @@ const forgetPassword_otp = async (req, res) => {
         user.otp = otp;
         await user.save();
 
-        AWSSES.sendEmail(
-            EmailTemplate(
-                email,
-
-                "Forget Password  OTP",
-
-                `
-               <h2>one Time Password</h2>
-               <p>
-                  Below is your OTP , 
-               </p>
-               <span style='font-size: 45px; color: orange; letter-spacing: 8px'  >
-                  ${otp}
-               </span>
-            `,
-            ),
-            (err, data) => {
-                if (err) {
-                    return res.json({
-                        error: err.message,
-                    });
-                }
-                if (data) {
-                    return res.json({
-                        message: "We have sent you OTP please check for password recovery.",
-                    });
-                }
-            },
+        // Nodemailer ke zariye OTP send karein
+        await EmailTemplate(
+            email,
+            "Forget Password  OTP",
+            `
+            <h2>one Time Password</h2>
+            <p>
+               Below is your OTP , 
+            </p>
+            <span style='font-size: 45px; color: orange; letter-spacing: 8px'  >
+               ${otp}
+            </span>
+            `
         );
+
+        return res.json({
+            message: "We have sent you OTP please check for password recovery.",
+        });
+
     } catch (err) {
         catchFunc(err, res);
     }
@@ -436,10 +415,8 @@ export const updateProfile = async (req, res) => {
         const bio = req.body.bio;
 
         let avatar = undefined;
-
-        if (req.file && req.file.location) {
-            avatar = req.file.location;
-            console.log("New avatar uploaded:", avatar);
+        if (req.file && req.file.path) {
+            avatar = req.file.path; // Local file path
         }
 
         const updateData = {

@@ -136,8 +136,10 @@ const Sidebar = () => {
                 transition={{ duration: 0.2 }}
                 className="text-2xl font-bold"
               >
-                <span className="text-gray-900 dark:text-white">Royal</span>
-                <span className="text-orange-500"> Crest</span>
+                <span className="text-gray-900 dark:text-white">
+                  Royal
+                </span>
+                <span className="text-orange-500"> Crest Estate</span>
               </motion.div>
             )}
           </AnimatePresence>
